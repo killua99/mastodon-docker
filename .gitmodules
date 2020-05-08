@@ -1,0 +1,3 @@
+[submodule "mastodon-upstream"]
+	path = mastodon-upstream
+	url = https://github.com/tootsuite/mastodon.git
