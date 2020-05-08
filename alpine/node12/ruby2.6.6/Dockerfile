@@ -36,7 +36,6 @@ FROM killua99/node-ruby:12-2.6-alpine
 RUN set -eux; \
     \
     apk add --no-cache \
-        postgresql-dev \
         tini
 
 # Copy mastodon
