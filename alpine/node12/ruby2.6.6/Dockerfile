@@ -1,10 +1,4 @@
-FROM killua99/node-ruby:12-2.6-alpine
-
-RUN set -eux; \
-    \
-    apk add --no-cache --virtual \
-        tini \
-    ;
+FROM killua99/node-ruby:12-2.6-alpine AS Vendors
 
 COPY mastodon-upstream /tmp/mastodon-build
 
@@ -20,9 +14,16 @@ RUN set -eux; \
     bundle install -j$(nproc); \
     yarn install --pure-lockfile
 
+FROM killua99/node-ruby:12-2.6-alpine
+
+RUN set -eux; \
+    \
+    apk add --no-cache \
+        tini
+
 # Copy mastodon
 COPY --chown=991:991 mastodon-upstream /opt/mastodon
-COPY --from=assets-compiled --chown=991:991 /opt/mastodon /opt/mastodon
+COPY --from=Vendors --chown=991:991 /opt/mastodon /opt/mastodon
 
 ARG UID=991
 ARG GID=991
@@ -33,8 +34,7 @@ RUN set -eux; \
     addgroup --gid ${GID} mastodon; \
     adduser -D -u ${UID} -G mastodon -h /opt/mastodon mastodon; \
     cd /opt/mastodon; \
-    ln -s /opt/mastodon /mastodon; \
-    rm -rf /tmp/mastodon-upstream
+    ln -s /opt/mastodon /mastodon
 
 # Run mastodon services in prod mode
 ENV RAILS_ENV="production"
