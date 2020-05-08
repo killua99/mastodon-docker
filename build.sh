@@ -78,7 +78,7 @@ git submodule update --init --recursive
 cd mastodon-upstream
 git fetch --all && git checkout ${MASTODON_VERSION}
 cd ..
-cp -r mastodon-upstream ${PATH_DOCKERFILE}/mastodon-upstream
+rsync -r mastodon-upstream ${PATH_DOCKERFILE}/mastodon-upstream
 
 docker buildx build \
     --push \

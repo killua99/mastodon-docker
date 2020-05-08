@@ -10,7 +10,6 @@ RUN set -eux; \
         ffmpeg \
         libidn-dev \
         yaml-dev \
-        yarn \
         gmp-dev \
         icu-dev \
         python \
@@ -36,6 +35,7 @@ FROM killua99/node-ruby:12-2.6-alpine
 RUN set -eux; \
     \
     apk add --no-cache \
+        git \
         tini
 
 # Copy mastodon
