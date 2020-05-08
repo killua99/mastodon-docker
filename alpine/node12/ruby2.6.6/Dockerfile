@@ -10,6 +10,7 @@ RUN set -eux; \
         ffmpeg \
         libidn-dev \
         yaml-dev \
+        yarn \
         gmp-dev \
         icu-dev \
         python \
