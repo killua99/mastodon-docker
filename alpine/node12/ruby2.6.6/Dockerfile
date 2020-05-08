@@ -1,5 +1,19 @@
 FROM killua99/node-ruby:12-2.6-alpine AS Vendors
 
+RUN set -eux; \
+    \
+    apk add --no-cache \
+        build-base \
+        protobuf-dev \
+        imagemagick \
+        libidn-dev \
+        ffmpeg \
+        libidn-dev \
+        yaml-dev \
+        gmp-dev \
+        icu-dev \
+        git
+
 COPY mastodon-upstream /tmp/mastodon-build
 
 RUN set -eux; \
@@ -19,6 +33,7 @@ FROM killua99/node-ruby:12-2.6-alpine
 RUN set -eux; \
     \
     apk add --no-cache \
+        postgresql-dev \
         tini
 
 # Copy mastodon

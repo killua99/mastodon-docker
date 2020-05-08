@@ -89,7 +89,7 @@ docker buildx build \
 
 rm -rf ${PATH_DOCKERFILE}/mastodon-upstream
 
-if test ! -z "$(docker images -q killua99/mastodon:${TAG})" && test ! -z ${PUSHOVER_API_KEY}; then
+if test ! -z ${PUSHOVER_API_KEY}; then
     curl -s \
         --form-string "token=${PUSHOVER_API_KEY}" \
         --form-string "user=${PUSHOVER_USER_KEY}" \
