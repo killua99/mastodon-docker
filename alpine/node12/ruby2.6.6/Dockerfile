@@ -12,6 +12,8 @@ RUN set -eux; \
         yaml-dev \
         gmp-dev \
         icu-dev \
+        python \
+        postgresql-dev \
         git
 
 COPY mastodon-upstream /tmp/mastodon-build
