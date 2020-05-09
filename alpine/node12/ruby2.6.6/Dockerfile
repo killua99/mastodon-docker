@@ -1,4 +1,4 @@
-FROM killua99/node-ruby:12-2.6-alpine AS Vendors
+FROM killua99/node-ruby:12-2.6-alpine AS apks
 
 RUN set -eux; \
     \
@@ -7,22 +7,43 @@ RUN set -eux; \
         protobuf-dev \
         libidn-dev \
         icu-dev \
-        python \
         postgresql-dev \
+        ncurses-dev \
+        glib-dev \
+        coreutils \
+        linux-headers \
+        dpkg-dev dpkg \
+        ruby-dev \
+        msgpack-c-dev \
+        openssl-dev \
+        openssl \
+        procps \
+        readline \
+        libuv \
         git
 
-COPY mastodon-upstream/Gemfile* mastodon-upstream/package.json mastodon-upstream/yarn.lock /opt/mastodon/
+FROM apks as yarn
+
+COPY mastodon-upstream/package.json mastodon-upstream/yarn.lock /opt/mastodon/
+
+RUN set -eux; \
+    \
+    cd /opt/mastodon; \
+    until yarn install --check-files --pure-lockfile; \
+    do \
+        echo "Let's try again..."; \
+    done
+
+FROM apks as bundle
+
+COPY mastodon-upstream/Gemfile* /opt/mastodon/
 
 RUN set -eux; \
     \
     cd /opt/mastodon; \
     bundle config set deployment 'true'; \
     bundle config set without 'development test'; \
-    bundle install -j$(nproc) --retry=5; \
-    until yarn install --check-files --pure-lockfile; \
-    do \
-        echo "Let's try again..."; \
-    done
+    bundle install -j$(nproc) --retry=30
 
 FROM killua99/node-ruby:12-2.6-alpine
 
@@ -55,8 +76,9 @@ RUN set -eux; \
 
 # Copy mastodon
 COPY --chown=991:991 mastodon-upstream /opt/mastodon
-COPY --from=Vendors --chown=991:991 /opt/mastodon /opt/mastodon
-COPY --from=Vendors /usr/local/bundle /usr/local/bundle
+COPY --from=yarn --chown=991:991 /opt/mastodon /opt/mastodon
+COPY --from=bundle --chown=991:991 /opt/mastodon /opt/mastodon
+COPY --from=bundle /usr/local/bundle /usr/local/bundle
 
 # Run mastodon services in prod mode
 ENV RAILS_ENV="production"

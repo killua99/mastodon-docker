@@ -3,6 +3,7 @@
 set -e
 
 POSITIONAL=()
+BUILD_FAIL=1
 
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -78,7 +79,7 @@ git submodule update --init --recursive
 cd mastodon-upstream
 git fetch --all && git checkout ${MASTODON_VERSION}
 cd ..
-rsync -r mastodon-upstream ${PATH_DOCKERFILE}/mastodon-upstream
+rsync -r mastodon-upstream ${PATH_DOCKERFILE}/
 
 docker buildx build \
     --push \
