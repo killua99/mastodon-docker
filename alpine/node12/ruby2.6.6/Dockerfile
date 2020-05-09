@@ -5,42 +5,42 @@ RUN set -eux; \
     apk add --no-cache \
         build-base \
         protobuf-dev \
-        imagemagick \
         libidn-dev \
-        ffmpeg \
-        libidn-dev \
-        yaml-dev \
-        gmp-dev \
         icu-dev \
         python \
         postgresql-dev \
         git
 
-COPY mastodon-upstream /tmp/mastodon-build
+COPY mastodon-upstream/Gemfile* mastodon-upstream/package.json mastodon-upstream/yarn.lock /opt/mastodon/
 
 RUN set -eux; \
     \
-    mkdir -p /opt/mastodon; \
-    cp /tmp/mastodon-build/Gemfile* /opt/mastodon/; \
-    cp /tmp/mastodon-build/package.json /opt/mastodon/; \
-    cp /tmp/mastodon-build/yarn.lock /opt/mastodon/; \
     cd /opt/mastodon; \
     bundle config set deployment 'true'; \
     bundle config set without 'development test'; \
-    bundle install -j$(nproc); \
-    yarn install --pure-lockfile
+    bundle install -j$(nproc) --retry=5; \
+    until yarn install --check-files --pure-lockfile; \
+    do \
+        echo "Let's try again..."; \
+    done
 
 FROM killua99/node-ruby:12-2.6-alpine
 
 RUN set -eux; \
     \
     apk add --no-cache \
-        git \
+        ca-certificates \
+        libprotobuf \
+        icu \
+        postgresql-dev \
+        imagemagick \
+        ffmpeg \
+        libidn \
+        yaml \
+        tzdata \
+        file \
+        readline \
         tini
-
-# Copy mastodon
-COPY --chown=991:991 mastodon-upstream /opt/mastodon
-COPY --from=Vendors --chown=991:991 /opt/mastodon /opt/mastodon
 
 ARG UID=991
 ARG GID=991
@@ -52,6 +52,11 @@ RUN set -eux; \
     adduser -D -u ${UID} -G mastodon -h /opt/mastodon mastodon; \
     cd /opt/mastodon; \
     ln -s /opt/mastodon /mastodon
+
+# Copy mastodon
+COPY --chown=991:991 mastodon-upstream /opt/mastodon
+COPY --from=Vendors --chown=991:991 /opt/mastodon /opt/mastodon
+COPY --from=Vendors /usr/local/bundle /usr/local/bundle
 
 # Run mastodon services in prod mode
 ENV RAILS_ENV="production"
